@@ -2,7 +2,6 @@ table! {
     fs (scrapbook_id, id) {
         scrapbook_id -> Integer,
         id -> Integer,
-        is_root -> Bool,
         created -> Timestamp,
         modified -> Timestamp,
         rdf_id -> Nullable<Text>,

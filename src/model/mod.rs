@@ -5,22 +5,21 @@ mod enums;
 use chrono::naive::NaiveDateTime;
 use diesel::Insertable;
 use schema::fs;
-use blob::ChildIds;
-use enums::NodeType;
+pub use blob::ChildIds;
+pub use enums::NodeType;
 
 #[derive(Insertable, Debug)]
 #[table_name = "fs"]
-struct ImportedNodeFull {
+pub struct FullNode {
     scrapbook_id: i32,
     #[diesel(embed)]
-    data: ImportedNode
+    data: LocalNode
 }
 
 #[derive(Insertable, Debug)]
 #[table_name = "fs"]
-struct ImportedNode {
+pub struct LocalNode {
     id: i32,
-    is_root: bool,
     rdf_id: Option<String>,
     type_: Option<NodeType>,
     created: Option<NaiveDateTime>,
