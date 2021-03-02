@@ -7,12 +7,12 @@ CREATE TABLE fs(
 	scrapbook_id INT NOT NULL REFERENCES scrapbooks(id),
 	id INT NOT NULL,
 	is_root BOOLEAN NOT NULL,
+	created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
 	rdf_id TEXT,
 
 	type INT,
-	created BIGINT,
-	modified BIGINT,
 	source TEXT,
 	icon TEXT,
 	comment TEXT,
