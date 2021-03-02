@@ -3,11 +3,11 @@ table! {
         scrapbook_id -> Integer,
         id -> Integer,
         is_root -> Bool,
+        created -> Timestamp,
+        modified -> Timestamp,
         rdf_id -> Nullable<Text>,
         #[sql_name = "type"]
         type_ -> Nullable<Integer>,
-        created -> Nullable<BigInt>,
-        modified -> Nullable<BigInt>,
         source -> Nullable<Text>,
         icon -> Nullable<Text>,
         comment -> Nullable<Text>,

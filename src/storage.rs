@@ -1,5 +1,3 @@
-pub mod schema;
-
 use crate::paths::ProjectDirs;
 use anyhow::{Context, Result};
 use diesel::{Connection, SqliteConnection};

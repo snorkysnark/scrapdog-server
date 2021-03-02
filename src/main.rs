@@ -3,8 +3,9 @@ extern crate diesel;
 #[macro_use]
 extern crate diesel_migrations;
 
-mod parser;
 mod paths;
+mod model;
+mod parser;
 mod storage;
 
 use clap::Clap;

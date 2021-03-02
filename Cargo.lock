@@ -24,6 +24,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 
 [[package]]
+name = "bincode"
+version = "1.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d175dfa69e619905c4c3cdb7c3c203fa3bdd5d51184e3afdb2742c0280493772"
+dependencies = [
+ "byteorder",
+ "serde",
+]
+
+[[package]]
 name = "bitflags"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -31,9 +41,9 @@ checksum = "cf1de2fe8c75bc145a2f577add951f8134889b4795d47466a54a5c846d691693"
 
 [[package]]
 name = "byteorder"
-version = "1.4.2"
+version = "1.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ae44d1a3d5a19df61dd0c8beb138458ac2a53a7ac09eba97d55592540004306b"
+checksum = "08c48aae112d48ed9f069b33538ea9e3e90aa263cfa3d1c24309612b1f7472de"
 
 [[package]]
 name = "cfg-if"
@@ -93,6 +103,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3e2de9deab977a153492a1468d1b1c0662c1cf39e5ea87d0c060ecd59ef18d8c"
 dependencies = [
  "byteorder",
+ "chrono",
  "diesel_derives",
  "libsqlite3-sys",
 ]
@@ -348,6 +359,7 @@ name = "scrapdog"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bincode",
  "chrono",
  "clap",
  "diesel",
@@ -355,6 +367,12 @@ dependencies = [
  "directories-next",
  "minidom",
 ]
+
+[[package]]
+name = "serde"
+version = "1.0.123"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "92d5161132722baa40d802cc70b15262b98258453e85e5d1d365c757c73869ae"
 
 [[package]]
 name = "strsim"
