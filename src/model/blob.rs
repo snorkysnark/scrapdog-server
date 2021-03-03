@@ -1,14 +1,16 @@
 use anyhow::anyhow;
 use diesel::{
     backend::Backend,
-    deserialize::{self, FromSql, FromSqlRow},
+    deserialize::{self, FromSql},
     serialize::{self, Output, ToSql},
     sql_types::Binary,
 };
+use serde::Serialize;
 use std::io::Write;
 
-#[derive(AsExpression, FromSqlRow, Debug)]
+#[derive(AsExpression, FromSqlRow, Serialize, Debug)]
 #[sql_type = "Binary"]
+#[serde(transparent)]
 pub struct ChildIds(pub Vec<i32>);
 
 impl<DB> ToSql<Binary, DB> for ChildIds

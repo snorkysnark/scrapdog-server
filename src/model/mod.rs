@@ -4,6 +4,7 @@ pub mod schema;
 
 use chrono::naive::NaiveDateTime;
 use diesel::{Insertable, Queryable};
+use serde::Serialize;
 use schema::fs;
 pub use blob::ChildIds;
 pub use enums::NodeType;
@@ -13,11 +14,12 @@ pub mod dsl {
     pub use super::schema::scrapbooks::dsl as scrapbooks;
 }
 
-#[derive(Queryable, Debug)]
+#[derive(Queryable, Serialize, Debug)]
 pub struct NodeFull {
     pub scrapbook_id: i32,
     pub id: i32,
     pub rdf_id: Option<String>,
+    #[serde(rename = "type")]
     pub type_: Option<NodeType>,
     pub title: Option<String>,
     pub source: Option<String>,

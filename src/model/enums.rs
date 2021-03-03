@@ -1,15 +1,16 @@
 use diesel::{
     backend::Backend,
-    deserialize::{self, FromSql, FromSqlRow},
+    deserialize::{self, FromSql},
     serialize::{self, Output, ToSql},
     sql_types::Integer,
 };
+use serde::Serialize;
 use num_enum::TryFromPrimitive;
 use std::convert::TryFrom;
 use std::io::Write;
 
 #[repr(i32)]
-#[derive(TryFromPrimitive, AsExpression, FromSqlRow, Debug, Clone, Copy)]
+#[derive(TryFromPrimitive, AsExpression, FromSqlRow, Serialize, Debug, Clone, Copy)]
 #[sql_type = "Integer"]
 pub enum NodeType {
     Folder = 0,
