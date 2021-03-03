@@ -3,11 +3,12 @@ use crate::{
         dsl,
         schema::{fs, scrapbooks},
         NodeBody,
+        NodeFull
     },
     paths::ProjectDirs,
 };
 use anyhow::{Context, Result};
-use diesel::{Connection, Insertable, RunQueryDsl, SqliteConnection};
+use diesel::prelude::*;
 use std::path::PathBuf;
 
 embed_migrations!();
@@ -75,6 +76,15 @@ impl Storage {
             .context("Inserting imported nodes")?;
 
         Ok(())
+    }
+
+    pub fn load_with_id(&self, scrapbook_id: i32) -> Result<Vec<NodeFull>> {
+        let nodes: Vec<NodeFull> = dsl::fs::fs.filter(dsl::fs::scrapbook_id.eq(scrapbook_id))
+            .order_by(dsl::fs::id)
+            .load(&self.db)
+            .context("Load nodes with scrapbook_id")?;
+
+        Ok(nodes)
     }
 }
 

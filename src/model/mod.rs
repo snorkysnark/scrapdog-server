@@ -13,6 +13,24 @@ pub mod dsl {
     pub use super::schema::scrapbooks::dsl as scrapbooks;
 }
 
+#[derive(Queryable, Debug)]
+pub struct NodeFull {
+    pub scrapbook_id: i32,
+    pub id: i32,
+    pub rdf_id: Option<String>,
+    pub type_: Option<NodeType>,
+    pub title: Option<String>,
+    pub source: Option<String>,
+    pub icon: Option<String>,
+    pub comment: Option<String>,
+    pub encoding: Option<String>,
+    pub marked: bool,
+    pub locked: bool,
+    pub created: NaiveDateTime,
+    pub modified: NaiveDateTime,
+    pub children: Option<ChildIds>,
+}
+
 #[derive(Insertable, Debug, Default)]
 #[table_name = "fs"]
 pub struct NodeBody {

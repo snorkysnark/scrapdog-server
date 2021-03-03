@@ -20,6 +20,9 @@ enum Args {
         scrapbook_name: String,
         file: PathBuf
     },
+    Load {
+        scrapbook_id: i32
+    }
 }
 
 fn main() {
@@ -35,6 +38,14 @@ fn main() {
             let storage = Storage::init(&dirs).expect("Database init error");
             storage.import_scrapbook(&scrapbook_name, nodes).expect("Import error");
             println!("Successfully imported file");
+        },
+        Args::Load { scrapbook_id } => {
+            let storage = Storage::init(&dirs).expect("Database init error");
+            let nodes = storage.load_with_id(scrapbook_id).expect("Query failed");
+
+            for node in nodes.iter() {
+                println!("{:#?}\n", node);
+            }
         }
     }
 }
