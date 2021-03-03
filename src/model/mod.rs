@@ -1,10 +1,10 @@
 mod blob;
 mod enums;
-mod schema;
+pub mod schema;
 
 use chrono::naive::NaiveDateTime;
 use diesel::Insertable;
-use schema::{fs,scrapbooks};
+use schema::fs;
 pub use blob::ChildIds;
 pub use enums::NodeType;
 
@@ -14,22 +14,8 @@ pub mod dsl {
 }
 
 #[derive(Insertable, Debug)]
-#[table_name = "scrapbooks"]
-pub struct Scrapbook {
-    pub name: String
-}
-
-#[derive(Insertable, Debug)]
 #[table_name = "fs"]
-pub struct FullNode {
-    pub scrapbook_id: i32,
-    #[diesel(embed)]
-    pub data: LocalNode
-}
-
-#[derive(Insertable, Debug)]
-#[table_name = "fs"]
-pub struct LocalNode {
+pub struct NodeInfo {
     pub id: i32,
     pub rdf_id: Option<String>,
     pub type_: Option<NodeType>,
