@@ -2,7 +2,7 @@ use crate::{
     model::{
         dsl,
         schema::{fs, scrapbooks},
-        NodeInfo,
+        NodeBody,
     },
     paths::ProjectDirs,
 };
@@ -28,8 +28,9 @@ struct ScrapbookNew<'a> {
 #[table_name = "fs"]
 struct NodeImport {
     scrapbook_id: i32,
+    id: i32,
     #[diesel(embed)]
-    data: NodeInfo,
+    data: NodeBody,
 }
 
 pub struct Storage {
@@ -49,7 +50,7 @@ impl Storage {
         Ok(Storage { db })
     }
 
-    pub fn import_scrapbook(&self, name: &str, nodes: Vec<NodeInfo>) -> Result<()> {
+    pub fn import_scrapbook(&self, name: &str, nodes: Vec<NodeBody>) -> Result<()> {
         diesel::insert_into(dsl::scrapbooks::scrapbooks)
             .values(&ScrapbookNew { name })
             .execute(&self.db)
@@ -61,11 +62,17 @@ impl Storage {
 
         let nodes: Vec<NodeImport> = nodes
             .into_iter()
-            .map(|data| NodeImport { scrapbook_id, data })
+            .enumerate()
+            .map(|(id, data)| NodeImport {
+                scrapbook_id,
+                id: id as i32,
+                data,
+            })
             .collect();
         diesel::insert_into(dsl::fs::fs)
             .values(&nodes)
-            .execute(&self.db).context("Inserting imported nodes")?;
+            .execute(&self.db)
+            .context("Inserting imported nodes")?;
 
         Ok(())
     }

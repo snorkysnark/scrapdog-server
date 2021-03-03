@@ -2,17 +2,18 @@ table! {
     fs (scrapbook_id, id) {
         scrapbook_id -> Integer,
         id -> Integer,
-        created -> Timestamp,
-        modified -> Timestamp,
         rdf_id -> Nullable<Text>,
         #[sql_name = "type"]
         type_ -> Nullable<Integer>,
+        title -> Nullable<Text>,
         source -> Nullable<Text>,
         icon -> Nullable<Text>,
         comment -> Nullable<Text>,
         encoding -> Nullable<Text>,
         marked -> Bool,
         locked -> Bool,
+        created -> Timestamp,
+        modified -> Timestamp,
         children -> Nullable<Binary>,
     }
 }

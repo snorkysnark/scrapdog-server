@@ -6,7 +6,7 @@ use std::io::Write;
 
 #[derive(AsExpression, Debug)]
 #[sql_type = "Binary"]
-pub struct ChildIds(Vec<i32>);
+pub struct ChildIds(pub Vec<i32>);
 
 impl<DB> ToSql<Binary, DB> for ChildIds
 where

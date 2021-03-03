@@ -1,46 +1,12 @@
+mod time;
+
 use anyhow::{anyhow, Context, Result};
 use minidom::Element;
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
-
-#[derive(Debug)]
-enum NodeType {
-    Folder,
-    Page,
-    File,
-    Note,
-    Notex,
-    Separator,
-}
-
-#[derive(Debug)]
-struct RdfNodeData {
-    rdf_id: String,
-    type_: NodeType,
-    title: Option<String>,
-    created: Option<String>,
-    modified: Option<String>,
-    source: Option<String>,
-    icon: Option<String>,
-    comment: Option<String>,
-    encoding: Option<String>,
-    marked: bool,
-    locked: bool,
-    children: Option<Vec<i32>>,
-}
-
-#[derive(Debug, Default)]
-struct RdfNode {
-    data: Option<RdfNodeData>,
-    children: Option<Vec<i32>>,
-}
-
-impl RdfNode {
-    pub fn root() -> Self {
-        Self::default()
-    }
-}
+use chrono::{NaiveDateTime, TimeZone};
+use crate::model::{NodeBody, NodeType, ChildIds};
 
 #[derive(Debug, Clone, Copy)]
 enum RdfResource<'a> {
@@ -49,22 +15,21 @@ enum RdfResource<'a> {
 }
 
 struct RdfGraph {
-    nodes: Vec<RdfNode>,
+    nodes: Vec<NodeBody>,
     node_ids: HashMap<String, usize>
 }
 
 impl RdfGraph {
     pub fn new() -> Self {
         RdfGraph {
-            nodes: vec![RdfNode::root()],
+            nodes: vec![NodeBody::root()],
             node_ids: HashMap::new()
         }
     }
 
-    pub fn add(&mut self, node: RdfNode) {
-        if let Some(ref data) = node.data
-        {
-            self.node_ids.insert(data.rdf_id.clone(), self.nodes.len());
+    pub fn add(&mut self, node: NodeBody) {
+        if let Some(ref rdf_id) = node.rdf_id {
+            self.node_ids.insert(rdf_id.clone(), self.nodes.len());
         }
         self.nodes.push(node);
     }
@@ -81,7 +46,7 @@ impl RdfGraph {
 
     pub fn make_folder(&mut self, resource: RdfResource) -> Result<RdfFolder> {
         let id = self.find_id(resource)?;
-        self.nodes[id].children = Some(Vec::new());
+        self.nodes[id].children = Some(Vec::new().into());
 
         Ok(RdfFolder {
             graph: self,
@@ -99,7 +64,7 @@ impl RdfFolder<'_> {
     pub fn connect(&mut self, resource: RdfResource) -> Result<()> {
         let child_id = self.graph.find_id(resource)?;
         match &mut self.graph.nodes[self.node_id].children {
-            Some(ref mut children) => children.push(child_id as i32),
+            Some(ChildIds(ref mut children)) => children.push(child_id as i32),
             None => unreachable!("Children should be initialized at this point")
         }
 
@@ -107,7 +72,7 @@ impl RdfFolder<'_> {
     }
 }
 
-pub fn parse_file(path: impl AsRef<Path>) -> Result<()> {
+pub fn parse_file(path: impl AsRef<Path>, timezone: &impl TimeZone) -> Result<Vec<NodeBody>> {
     let xml = fs::read_to_string(&path).context("File reading error")?;
     let xml_root: Element = xml.parse().context("Parsing error")?;
 
@@ -117,12 +82,8 @@ pub fn parse_file(path: impl AsRef<Path>) -> Result<()> {
         .children()
         .filter(|tag| matches!(tag.name(), "Description" | "BookmarkSeparator"))
     {
-        let node = parse_description(&item)?;
-
-        graph.add(RdfNode {
-            data: Some(node),
-            children: None,
-        });
+        let node = parse_description(&item, timezone)?;
+        graph.add(node);
     }
 
     for sec in xml_root.children().filter(|tag| tag.name() == "Seq") {
@@ -143,11 +104,7 @@ pub fn parse_file(path: impl AsRef<Path>) -> Result<()> {
         }
     }
 
-    for (id, node) in graph.nodes.iter().enumerate() {
-        println!("{}:{:#?}\n", id, node);
-    }
-
-    Ok(())
+    Ok(graph.nodes)
 }
 
 fn parse_rdf_resource(resource: &str) -> Result<RdfResource> {
@@ -162,7 +119,19 @@ fn parse_rdf_resource(resource: &str) -> Result<RdfResource> {
     }
 }
 
-fn parse_description(item: &Element) -> Result<RdfNodeData> {
+fn convert_time(timestr: &str, timezone: &impl TimeZone) -> Option<NaiveDateTime> {
+    match time::parse(timestr, timezone) {
+        Ok(date) => {
+            Some(date.naive_utc())
+        },
+        Err(e) => {
+            eprintln!("Timezone convertion error: {}", e);
+            None
+        }
+    }
+}
+
+fn parse_description(item: &Element, timezone: &impl TimeZone) -> Result<NodeBody> {
     let (type_, marked) = match item
         .attr("NS1:type")
         .ok_or_else(|| anyhow!("Type attribute missing"))?
@@ -177,15 +146,15 @@ fn parse_description(item: &Element) -> Result<RdfNodeData> {
         other => Err(anyhow!("Unknown node type: {}", other)),
     }?;
 
-    Ok(RdfNodeData {
-        rdf_id: item
-            .attr("NS1:id")
-            .ok_or_else(|| anyhow!("Id attribute missing"))?
-            .to_owned(),
-        type_,
+    Ok(NodeBody {
+        rdf_id: Some(item
+                 .attr("NS1:id")
+                 .ok_or_else(|| anyhow!("Id attribute missing"))?
+                 .to_owned()),
+        type_: Some(type_),
         title: item.attr("NS1:title").map(ToOwned::to_owned),
-        created: item.attr("NS1:create").map(ToOwned::to_owned),
-        modified: item.attr("NS1:modify").map(ToOwned::to_owned),
+        created: item.attr("NS1:create").map(|date| convert_time(date, timezone)).flatten(),
+        modified: item.attr("NS1:modify").map(|date| convert_time(date, timezone)).flatten(),
         source: item.attr("NS1:source").map(ToOwned::to_owned),
         icon: item.attr("NS1:icon").map(ToOwned::to_owned),
         comment: item.attr("NS1:comment").map(ToOwned::to_owned),

@@ -3,7 +3,7 @@ mod enums;
 pub mod schema;
 
 use chrono::naive::NaiveDateTime;
-use diesel::Insertable;
+use diesel::{Insertable, Queryable};
 use schema::fs;
 pub use blob::ChildIds;
 pub use enums::NodeType;
@@ -13,12 +13,12 @@ pub mod dsl {
     pub use super::schema::scrapbooks::dsl as scrapbooks;
 }
 
-#[derive(Insertable, Debug)]
+#[derive(Insertable, Debug, Default)]
 #[table_name = "fs"]
-pub struct NodeInfo {
-    pub id: i32,
+pub struct NodeBody {
     pub rdf_id: Option<String>,
     pub type_: Option<NodeType>,
+    pub title: Option<String>,
     pub created: Option<NaiveDateTime>,
     pub modified: Option<NaiveDateTime>,
     pub source: Option<String>,
@@ -28,4 +28,10 @@ pub struct NodeInfo {
     pub marked: bool,
     pub locked: bool,
     pub children: Option<ChildIds>,
+}
+
+impl NodeBody {
+    pub fn root() -> Self {
+        Self::default()
+    }
 }
