@@ -1,5 +1,4 @@
-use diesel::{
-    backend::Backend,
+use diesel::{ backend::Backend,
     serialize::{self, Output, ToSql},
     sql_types::Binary,
 };
@@ -12,10 +11,16 @@ pub struct ChildIds(Vec<i32>);
 impl<DB> ToSql<Binary, DB> for ChildIds
 where
     DB: Backend,
-    Vec<u8>: ToSql<Binary, DB>,
+    [u8]: ToSql<Binary, DB>,
 {
     fn to_sql<W: Write>(&self, out: &mut Output<W, DB>) -> serialize::Result {
-        let bytes: Vec<u8> = bincode::serialize(&self.0).expect("Can't serialize Vec<i32> to blob");
-        bytes.to_sql(out)
+        let bytes: &[u8] =
+            bytemuck::try_cast_slice(&self.0[..]).expect("Can't convert &[i32] to blob");
+        bytes.to_sql(out) }
+}
+
+impl From<Vec<i32>> for ChildIds {
+    fn from(vec: Vec<i32>) -> Self {
+        ChildIds(vec)
     }
 }
