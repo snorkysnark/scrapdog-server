@@ -1,34 +1,45 @@
-mod schema;
 mod blob;
 mod enums;
+mod schema;
 
 use chrono::naive::NaiveDateTime;
 use diesel::Insertable;
-use schema::fs;
+use schema::{fs,scrapbooks};
 pub use blob::ChildIds;
 pub use enums::NodeType;
+
+pub mod dsl {
+    pub use super::schema::fs::dsl as fs;
+    pub use super::schema::scrapbooks::dsl as scrapbooks;
+}
+
+#[derive(Insertable, Debug)]
+#[table_name = "scrapbooks"]
+pub struct Scrapbook {
+    pub name: String
+}
 
 #[derive(Insertable, Debug)]
 #[table_name = "fs"]
 pub struct FullNode {
-    scrapbook_id: i32,
+    pub scrapbook_id: i32,
     #[diesel(embed)]
-    data: LocalNode
+    pub data: LocalNode
 }
 
 #[derive(Insertable, Debug)]
 #[table_name = "fs"]
 pub struct LocalNode {
-    id: i32,
-    rdf_id: Option<String>,
-    type_: Option<NodeType>,
-    created: Option<NaiveDateTime>,
-    modified: Option<NaiveDateTime>,
-    source: Option<String>,
-    icon: Option<String>,
-    comment: Option<String>,
-    encoding: Option<String>,
-    marked: bool,
-    locked: bool,
-    children: Option<ChildIds>,
+    pub id: i32,
+    pub rdf_id: Option<String>,
+    pub type_: Option<NodeType>,
+    pub created: Option<NaiveDateTime>,
+    pub modified: Option<NaiveDateTime>,
+    pub source: Option<String>,
+    pub icon: Option<String>,
+    pub comment: Option<String>,
+    pub encoding: Option<String>,
+    pub marked: bool,
+    pub locked: bool,
+    pub children: Option<ChildIds>,
 }
