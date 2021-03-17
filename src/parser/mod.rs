@@ -143,6 +143,7 @@ fn parse_description(item: &Element, timezone: &impl TimeZone) -> Result<NodeBod
         "note" => Ok((NodeType::Note, false)),
         "notex" => Ok((NodeType::Notex, false)),
         "separator" => Ok((NodeType::Separator, false)),
+        "bookmark" => Ok((NodeType::Bookmark, false)),
         other => Err(anyhow!("Unknown node type: {}", other)),
     }?;
 

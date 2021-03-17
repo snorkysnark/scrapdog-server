@@ -19,6 +19,7 @@ pub enum NodeType {
     Note = 3,
     Notex = 4,
     Separator = 5,
+    Bookmark = 6,
 }
 
 impl<DB> ToSql<Integer, DB> for NodeType
