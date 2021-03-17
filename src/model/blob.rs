@@ -16,11 +16,11 @@ pub struct ChildIds(pub Vec<i32>);
 impl<DB> ToSql<Binary, DB> for ChildIds
 where
     DB: Backend,
-    [u8]: ToSql<Binary, DB>,
+    Vec<u8>: ToSql<Binary, DB>,
 {
     fn to_sql<W: Write>(&self, out: &mut Output<W, DB>) -> serialize::Result {
-        let bytes: &[u8] = bytemuck::try_cast_slice(&self.0[..])
-            .map_err(|e| anyhow!("Can't convert &[i32] to blob: {:?}", e))?;
+        let bytes: Vec<u8> = bincode::serialize(&self.0)
+            .map_err(|e| anyhow!("Can't serialize Vec<i32> to blob: {:?}", e))?;
         bytes.to_sql(out)
     }
 }
@@ -33,7 +33,8 @@ where
     fn from_sql(raw: Option<&DB::RawValue>) -> deserialize::Result<Self> {
         let bytes: Vec<u8> = Vec::from_sql(raw)?;
 
-        let ints: Vec<i32> = bytemuck::allocation::pod_collect_to_vec(&bytes[..]);
+        let ints: Vec<i32> = bincode::deserialize(&bytes[..])
+            .map_err(|e| anyhow!("Can't deserialize Vec<i32> from blob: {:?}", e))?;
         Ok(ints.into())
     }
 }
