@@ -33,17 +33,8 @@ where
     fn from_sql(raw: Option<&DB::RawValue>) -> deserialize::Result<Self> {
         let bytes: Vec<u8> = Vec::from_sql(raw)?;
 
-        if bytes.len() == 0 {
-            Ok(Vec::new().into())
-        } else {
-            let ints: Vec<i32> = bytemuck::try_cast_slice(&bytes[..])
-                .map_err(|e| anyhow!("Can't convert blob to Vec<i32>: {:?}", e))?
-                .iter()
-                .cloned()
-                .collect();
-
-            Ok(ints.into())
-        }
+        let ints: Vec<i32> = bytemuck::allocation::pod_collect_to_vec(&bytes[..]);
+        Ok(ints.into())
     }
 }
 
