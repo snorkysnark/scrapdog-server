@@ -11,9 +11,9 @@ use std::io::Write;
 #[derive(AsExpression, FromSqlRow, Serialize, Debug)]
 #[sql_type = "Binary"]
 #[serde(transparent)]
-pub struct ChildIds(pub Vec<i32>);
+pub struct BlobVecI32(pub Vec<i32>);
 
-impl<DB> ToSql<Binary, DB> for ChildIds
+impl<DB> ToSql<Binary, DB> for BlobVecI32
 where
     DB: Backend,
     Vec<u8>: ToSql<Binary, DB>,
@@ -25,7 +25,7 @@ where
     }
 }
 
-impl<DB> FromSql<Binary, DB> for ChildIds
+impl<DB> FromSql<Binary, DB> for BlobVecI32
 where
     DB: Backend,
     Vec<u8>: FromSql<Binary, DB>,
@@ -39,8 +39,8 @@ where
     }
 }
 
-impl From<Vec<i32>> for ChildIds {
+impl From<Vec<i32>> for BlobVecI32 {
     fn from(vec: Vec<i32>) -> Self {
-        ChildIds(vec)
+        BlobVecI32(vec)
     }
 }

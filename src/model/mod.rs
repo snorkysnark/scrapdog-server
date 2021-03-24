@@ -6,7 +6,7 @@ use chrono::naive::NaiveDateTime;
 use diesel::{Insertable, Queryable};
 use serde::Serialize;
 use schema::fs;
-pub use blob::ChildIds;
+pub use blob::BlobVecI32;
 pub use enums::NodeType;
 
 pub mod dsl {
@@ -30,7 +30,7 @@ pub struct NodeFull {
     pub locked: bool,
     pub created: NaiveDateTime,
     pub modified: NaiveDateTime,
-    pub children: Option<ChildIds>,
+    pub children: Option<BlobVecI32>,
 }
 
 #[derive(Insertable, Debug, Default)]
@@ -47,7 +47,7 @@ pub struct NodeBody {
     pub encoding: Option<String>,
     pub marked: bool,
     pub locked: bool,
-    pub children: Option<ChildIds>,
+    pub children: Option<BlobVecI32>,
 }
 
 impl NodeBody {
