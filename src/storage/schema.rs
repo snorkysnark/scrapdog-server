@@ -2,6 +2,7 @@ table! {
     fs (scrapbook_id, id) {
         scrapbook_id -> Integer,
         id -> Integer,
+        bucket_id -> Nullable<Integer>,
         rdf_id -> Nullable<Text>,
         #[sql_name = "type"]
         type_ -> Nullable<Integer>,
@@ -12,8 +13,8 @@ table! {
         encoding -> Nullable<Text>,
         marked -> Bool,
         locked -> Bool,
-        created -> Timestamp,
-        modified -> Timestamp,
+        created -> Nullable<Timestamp>,
+        modified -> Nullable<Timestamp>,
         children -> Nullable<Binary>,
     }
 }

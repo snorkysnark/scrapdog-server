@@ -6,6 +6,7 @@ CREATE TABLE scrapbooks(
 CREATE TABLE fs(
 	scrapbook_id INT NOT NULL REFERENCES scrapbooks(id),
 	id INT NOT NULL,
+	bucket_id INT,
 
 	rdf_id TEXT,
 
@@ -17,8 +18,8 @@ CREATE TABLE fs(
 	encoding TEXT,
 	marked BOOLEAN NOT NULL,
 	locked BOOLEAN NOT NULL,
-	created TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-	modified TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	created TIMESTAMP,
+	modified TIMESTAMP,
 
 	children BLOB,
 
