@@ -10,6 +10,7 @@ use resource::RdfResource;
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
+use crate::model::NodeType;
 
 type ChildIds = Vec<i32>;
 
@@ -30,17 +31,6 @@ pub struct RdfNode {
 }
 
 #[derive(Debug)]
-pub enum NodeType {
-    Folder,
-    Page,
-    File,
-    Note,
-    Notex,
-    Separator,
-    Bookmark,
-}
-
-#[derive(Debug)]
 pub struct UnresolvedTime(NaiveDateTime);
 
 impl UnresolvedTime {
@@ -53,8 +43,8 @@ impl UnresolvedTime {
 #[derive(Default)]
 struct RdfGraphIndexed {
     root: ChildIds,
-
     nodes: Vec<RdfNode>,
+
     node_ids: HashMap<String, usize>,
 }
 
