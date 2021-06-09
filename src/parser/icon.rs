@@ -1,15 +1,8 @@
 use anyhow::{anyhow, Result};
 use lazy_static::lazy_static;
 use regex::Regex;
-use std::path::PathBuf;
 use super::regex_utils::RegexExt;
-
-#[derive(PartialEq, Eq, Debug)]
-pub enum UnresolvedIcon {
-    Url(String),
-    InBucket(PathBuf),
-    File(PathBuf),
-}
+use crate::types::UnresolvedIcon;
 
 impl UnresolvedIcon {
     pub(super) fn parse(rdf_icon: &str) -> Result<Option<UnresolvedIcon>> {

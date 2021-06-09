@@ -1,6 +1,12 @@
+mod icon;
+mod time;
+
 use num_enum::TryFromPrimitive;
 use diesel::sql_types::Integer;
 use scrapdog_derive::SqlIntegerEnum;
+
+pub use icon::UnresolvedIcon;
+pub use time::UnresolvedTime;
 
 #[repr(i32)]
 #[derive(SqlIntegerEnum, TryFromPrimitive, AsExpression, FromSqlRow, Debug, Copy, Clone)]

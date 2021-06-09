@@ -4,39 +4,35 @@ mod resource;
 
 use anyhow::{anyhow, Context, Result};
 use chrono::NaiveDateTime;
-use icon::UnresolvedIcon;
 use minidom::Element;
 use resource::RdfResource;
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
-use crate::model::NodeType;
+use crate::types::{NodeType, UnresolvedIcon, UnresolvedTime};
 
 type ChildIds = Vec<i32>;
 
 #[derive(Debug)]
 pub struct RdfNode {
-    rdf_id: String,
-    type_: NodeType,
-    title: Option<String>,
-    created: Option<UnresolvedTime>,
-    modified: Option<UnresolvedTime>,
-    source: Option<String>,
-    icon: Option<UnresolvedIcon>,
-    comment: Option<String>,
-    encoding: Option<String>,
-    marked: bool,
-    locked: bool,
-    children: Option<ChildIds>,
+    pub rdf_id: String,
+    pub type_: NodeType,
+    pub title: Option<String>,
+    pub created: Option<UnresolvedTime>,
+    pub modified: Option<UnresolvedTime>,
+    pub source: Option<String>,
+    pub icon: Option<UnresolvedIcon>,
+    pub comment: Option<String>,
+    pub encoding: Option<String>,
+    pub marked: bool,
+    pub locked: bool,
+    pub children: Option<ChildIds>,
 }
-
-#[derive(Debug)]
-pub struct UnresolvedTime(NaiveDateTime);
 
 impl UnresolvedTime {
     fn parse(timestr: &str) -> Result<Self> {
         let naive = NaiveDateTime::parse_from_str(timestr, "%Y%m%d%H%M%S")?;
-        Ok(UnresolvedTime(naive))
+        Ok(UnresolvedTime::from_naive(naive))
     }
 }
 
@@ -111,8 +107,8 @@ impl RdfFolder<'_> {
 
 #[derive(Debug)]
 pub struct RdfGraph {
-    root: ChildIds,
-    nodes: Vec<RdfNode>,
+    pub root: ChildIds,
+    pub nodes: Vec<RdfNode>,
 }
 
 impl From<RdfGraphIndexed> for RdfGraph {

@@ -6,7 +6,7 @@ CREATE TABLE scrapbooks(
 CREATE TABLE fs(
 	scrapbook_id INT NOT NULL REFERENCES scrapbooks(id),
 	id INT NOT NULL,
-	bucket_id INT,
+	bucket_id INT UNIQUE,
 
 	rdf_id TEXT,
 
