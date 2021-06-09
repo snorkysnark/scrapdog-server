@@ -1,6 +1,6 @@
 use regex::Regex;
 
-pub trait RegexExt{
+pub trait RegexExt {
     fn capture_first<'a>(&self, text: &'a str) -> Option<&'a str>;
 }
 

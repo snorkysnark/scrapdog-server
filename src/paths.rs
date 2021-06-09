@@ -6,10 +6,10 @@ pub trait ProjectDirs {
 }
 
 impl ProjectDirs for directories_next::ProjectDirs {
-//    fn config_dir(&self) -> &Path {
-//        self.config_dir()
-//    }
-//
+    //    fn config_dir(&self) -> &Path {
+    //        self.config_dir()
+    //    }
+    //
     fn data_dir(&self) -> &Path {
         self.data_dir()
     }

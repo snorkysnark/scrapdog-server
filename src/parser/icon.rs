@@ -1,8 +1,14 @@
+use super::regex_utils::RegexExt;
 use anyhow::{anyhow, Result};
 use lazy_static::lazy_static;
 use regex::Regex;
-use super::regex_utils::RegexExt;
-use crate::types::UnresolvedIcon;
+
+#[derive(PartialEq, Eq, Debug)]
+pub enum UnresolvedIcon {
+    Url(String),
+    InBucket(String),
+    File(String),
+}
 
 impl UnresolvedIcon {
     pub(super) fn parse(rdf_icon: &str) -> Result<Option<UnresolvedIcon>> {

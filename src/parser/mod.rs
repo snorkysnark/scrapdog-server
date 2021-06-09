@@ -9,9 +9,10 @@ use resource::RdfResource;
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
-use crate::types::{NodeType, UnresolvedIcon, UnresolvedTime};
 
 type ChildIds = Vec<i32>;
+
+pub use icon::UnresolvedIcon;
 
 #[derive(Debug)]
 pub struct RdfNode {
@@ -29,10 +30,24 @@ pub struct RdfNode {
     pub children: Option<ChildIds>,
 }
 
+#[derive(Debug, Copy, Clone)]
+pub enum NodeType {
+    Folder,
+    Page,
+    File,
+    Note,
+    Notex,
+    Separator,
+    Bookmark,
+}
+
+#[derive(Debug)]
+pub struct UnresolvedTime(pub NaiveDateTime);
+
 impl UnresolvedTime {
     fn parse(timestr: &str) -> Result<Self> {
         let naive = NaiveDateTime::parse_from_str(timestr, "%Y%m%d%H%M%S")?;
-        Ok(UnresolvedTime::from_naive(naive))
+        Ok(UnresolvedTime(naive))
     }
 }
 
@@ -56,16 +71,19 @@ impl RdfGraphIndexed {
 
     fn find_id(&self, rdf_id: &str) -> Result<usize> {
         let id = self
-        .node_ids
-        .get(rdf_id)
-        .ok_or_else(|| anyhow!("Resource id {} not found", rdf_id))?;
+            .node_ids
+            .get(rdf_id)
+            .ok_or_else(|| anyhow!("Resource id {} not found", rdf_id))?;
 
         Ok(*id)
     }
 
     fn make_folder(&mut self, resource: RdfResource) -> Result<RdfFolder> {
         match resource {
-            RdfResource::Root => Ok(RdfFolder{ graph: self, node_id: None }),
+            RdfResource::Root => Ok(RdfFolder {
+                graph: self,
+                node_id: None,
+            }),
 
             RdfResource::RdfId(rdf_id) => {
                 let id = self.find_id(rdf_id)?;
@@ -95,12 +113,12 @@ impl RdfFolder<'_> {
                     None => self.graph.root.push(child_id),
                     Some(ref parent_id) => match self.graph.nodes[*parent_id].children {
                         Some(ref mut children) => children.push(child_id),
-                        None => unreachable!("Children should be initialized at this point")
-                    }
+                        None => unreachable!("Children should be initialized at this point"),
+                    },
                 }
                 Ok(())
-            },
-            RdfResource::Root => Err(anyhow!("Root node can't be a child of another node"))
+            }
+            RdfResource::Root => Err(anyhow!("Root node can't be a child of another node")),
         }
     }
 }
@@ -115,7 +133,7 @@ impl From<RdfGraphIndexed> for RdfGraph {
     fn from(indexed: RdfGraphIndexed) -> Self {
         RdfGraph {
             root: indexed.root,
-            nodes: indexed.nodes
+            nodes: indexed.nodes,
         }
     }
 }

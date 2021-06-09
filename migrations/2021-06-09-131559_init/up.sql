@@ -1,12 +1,12 @@
 CREATE TABLE scrapbooks(
 	id INTEGER NOT NULL PRIMARY KEY,
-	name TEXT NOT NULL
+	name TEXT UNIQUE NOT NULL
 );
 
 CREATE TABLE fs(
+	id INTEGER NOT NULL PRIMARY KEY,
+	is_root BOOLEAN NOT NULL,
 	scrapbook_id INT NOT NULL REFERENCES scrapbooks(id),
-	id INT NOT NULL,
-	bucket_id INT UNIQUE,
 
 	rdf_id TEXT,
 
@@ -16,12 +16,10 @@ CREATE TABLE fs(
 	icon TEXT,
 	comment TEXT,
 	encoding TEXT,
-	marked BOOLEAN NOT NULL,
-	locked BOOLEAN NOT NULL,
+	marked BOOLEAN,
+	locked BOOLEAN,
 	created TIMESTAMP,
 	modified TIMESTAMP,
 
-	children BLOB,
-
-	PRIMARY KEY (scrapbook_id, id)
+	children BLOB
 );

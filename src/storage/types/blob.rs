@@ -5,12 +5,10 @@ use diesel::{
     serialize::{self, Output, ToSql},
     sql_types::Binary,
 };
-use serde::Serialize;
 use std::io::Write;
 
-#[derive(AsExpression, FromSqlRow, Serialize, Debug)]
+#[derive(AsExpression, FromSqlRow, Debug)]
 #[sql_type = "Binary"]
-#[serde(transparent)]
 pub struct BlobVecI32(pub Vec<i32>);
 
 impl<DB> ToSql<Binary, DB> for BlobVecI32

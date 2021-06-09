@@ -1,7 +1,7 @@
+use super::regex_utils::RegexExt;
 use anyhow::{anyhow, Result};
 use lazy_static::lazy_static;
 use regex::Regex;
-use super::regex_utils::RegexExt;
 
 #[derive(Debug, Clone, Copy)]
 pub enum RdfResource<'a> {
