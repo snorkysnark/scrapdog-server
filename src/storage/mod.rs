@@ -1,5 +1,6 @@
 mod buckets;
 mod importer;
+mod loader;
 mod schema;
 mod types;
 
@@ -7,7 +8,6 @@ use crate::paths::ProjectDirs;
 use anyhow::{Context, Result};
 use buckets::BucketsFolder;
 use diesel::prelude::*;
-use std::path::PathBuf;
 
 type DieselError = diesel::result::Error;
 
@@ -63,5 +63,12 @@ impl Storage {
 
         let scrapbooks_id: i32 = diesel::select(last_insert_rowid).get_result(&self.db)?;
         Ok(scrapbooks_id)
+    }
+
+    pub fn list_scrapbooks(&self) -> Result<Vec<String>> {
+        use schema::scrapbooks::dsl::*;
+
+        let names: Vec<String> = scrapbooks.select(name).order_by(id).load(&self.db)?;
+        Ok(names)
     }
 }

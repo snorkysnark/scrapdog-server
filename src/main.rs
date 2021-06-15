@@ -5,6 +5,7 @@ extern crate diesel_migrations;
 
 mod parser;
 mod paths;
+mod server;
 mod storage;
 
 use clap::Clap;
@@ -21,6 +22,10 @@ enum Args {
     Import {
         folder: PathBuf,
         scrapbook_name: String,
+    },
+    Serve,
+    Load {
+        scrapbook_id: i32,
     },
 }
 
@@ -59,6 +64,17 @@ fn main() {
                     &chrono::Local,
                 )
                 .expect("Import error");
+        }
+        Args::Serve => {
+            let storage = Storage::init(&dirs).expect("Initializing sqlite");
+            server::serve(storage);
+        }
+        Args::Load { scrapbook_id } => {
+            let storage = Storage::init(&dirs).expect("Initializing sqlite");
+            let tree = storage
+                .get_scrapbook_node_tree(scrapbook_id)
+                .expect("Query failed");
+            serde_json::to_writer_pretty(std::io::stdout(), &tree).unwrap();
         }
     }
 }

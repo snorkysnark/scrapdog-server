@@ -3,13 +3,16 @@ mod blob;
 use diesel::sql_types::Integer;
 use num_enum::TryFromPrimitive;
 use scrapdog_derive::SqlIntegerEnum;
+use serde_repr::Serialize_repr;
 
 type ParserNodeType = crate::parser::NodeType;
 
 pub use blob::BlobVecI32;
 
 #[repr(i32)]
-#[derive(SqlIntegerEnum, TryFromPrimitive, AsExpression, FromSqlRow, Debug, Copy, Clone)]
+#[derive(
+    SqlIntegerEnum, TryFromPrimitive, AsExpression, FromSqlRow, Serialize_repr, Debug, Copy, Clone,
+)]
 #[sql_type = "Integer"]
 pub enum NodeType {
     Folder = 0,
