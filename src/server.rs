@@ -3,29 +3,34 @@ use anyhow::Result;
 use std::convert::Infallible;
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use warp::{reject::Reject, Filter, Rejection};
+use warp::Filter;
 
-struct AnyhowRejecion(anyhow::Error);
-impl Reject for AnyhowRejecion {}
-impl std::fmt::Debug for AnyhowRejecion {
-    fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.0.fmt(fmt)
+mod rejections {
+    use warp::{reject::Reject, Rejection};
+
+    struct AnyhowRejecion(anyhow::Error);
+    impl Reject for AnyhowRejecion {}
+    impl std::fmt::Debug for AnyhowRejecion {
+        fn fmt(&self, fmt: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            self.0.fmt(fmt)
+        }
+    }
+
+    pub trait IntoRejection {
+        fn into_rejection(self) -> Rejection;
+    }
+    impl IntoRejection for anyhow::Error {
+        fn into_rejection(self) -> Rejection {
+            warp::reject::custom(AnyhowRejecion(self))
+        }
     }
 }
-
-trait IntoRejection {
-    fn into_rejection(self) -> Rejection;
-}
-impl IntoRejection for anyhow::Error {
-    fn into_rejection(self) -> Rejection {
-        warp::reject::custom(AnyhowRejecion(self))
-    }
-}
+use rejections::IntoRejection;
 
 async fn list_scrapbooks(storage: &Arc<Mutex<Storage>>) -> Result<String> {
     let storage = storage.lock().await;
     let scrapbooks = storage.list_scrapbooks()?;
-    let json = serde_json::to_string(&scrapbooks)?;
+    let json = serde_json::to_string_pretty(&scrapbooks)?;
     Ok(json)
 }
 
@@ -44,9 +49,10 @@ fn with_db(
 
 #[tokio::main]
 pub async fn serve(storage: Storage) {
+    let buckets_dir = storage.get_bucket_path().to_owned();
     let storage = Arc::new(Mutex::new(storage));
 
-    let scrapbook_list = warp::path("scrapbooks")
+    let scrapbook_list = warp::path("scrapbooklist")
         .and(with_db(storage.clone()))
         .and_then(|storage: Arc<Mutex<Storage>>| async move {
             list_scrapbooks(&storage)
@@ -62,7 +68,9 @@ pub async fn serve(storage: Storage) {
                 .map_err(IntoRejection::into_rejection)
         });
 
-    warp::serve(scrapbook_list.or(scrapbook_tree))
+    let files = warp::path("files").and(warp::fs::dir(buckets_dir));
+
+    warp::serve(scrapbook_list.or(scrapbook_tree).or(files))
         .run(([127, 0, 0, 1], 3030))
         .await;
 }
