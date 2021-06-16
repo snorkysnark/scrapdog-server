@@ -10,7 +10,7 @@ use diesel::prelude::*;
 use serde::Serialize;
 
 #[derive(Queryable, Debug)]
-pub struct FsNodeWithId {
+pub struct FsNode {
     pub id: i32,
     pub rdf_id: Option<String>,
     pub type_: Option<NodeType>,
@@ -28,7 +28,8 @@ pub struct FsNodeWithId {
 
 #[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
-pub struct FsNode {
+pub struct FsNodeResolved {
+    pub id: i32,
     pub rdf_id: Option<String>,
     #[serde(rename = "type")]
     pub type_: Option<NodeType>,
@@ -41,12 +42,27 @@ pub struct FsNode {
     pub locked: Option<bool>,
     pub created: Option<NaiveDateTime>,
     pub modified: Option<NaiveDateTime>,
-    pub children: Option<BlobVecI32>,
+    pub children: Option<Vec<FsNodeResolved>>,
 }
 
-impl FsNode {
-    fn from_fs_node_with_id(node: FsNodeWithId) -> Self {
-        FsNode {
+impl FsNodeResolved {
+    fn try_resolve(id: i32, id_map: &mut HashMap<i32, FsNode>) -> Result<Self> {
+        let node = id_map
+            .remove(&id)
+            .ok_or_else(|| anyhow!("Cannot resolve id {}", id))?;
+
+        let children: Option<Vec<_>> = node
+            .children
+            .map(|vec| {
+                vec.0
+                    .into_iter()
+                    .map(|child_id| FsNodeResolved::try_resolve(child_id, id_map))
+                    .collect()
+            })
+            .transpose()?;
+
+        Ok(FsNodeResolved {
+            id: node.id,
             rdf_id: node.rdf_id,
             type_: node.type_,
             title: node.title,
@@ -58,22 +74,16 @@ impl FsNode {
             locked: node.locked,
             created: node.created,
             modified: node.modified,
-            children: node.children,
-        }
+            children,
+        })
     }
 }
 
-#[derive(Serialize, Debug)]
-pub struct ScrapbookFs {
-    root: Vec<i32>,
-    nodes: HashMap<i32, FsNode>,
-}
-
 impl Storage {
-    pub fn get_scrapbook_nodes_raw(&self, scrapbook_id: i32) -> Result<Vec<FsNodeWithId>> {
+    pub fn get_scrapbook_nodes_raw(&self, scrapbook_id: i32) -> Result<Vec<FsNode>> {
         use super::schema::fs::dsl as fs;
 
-        let nodes: Vec<FsNodeWithId> = fs::fs
+        let nodes: Vec<FsNode> = fs::fs
             .select((
                 fs::id,
                 fs::rdf_id,
@@ -95,22 +105,26 @@ impl Storage {
         Ok(nodes)
     }
 
-    pub fn get_scrapbook_node_tree(&self, scrapbook_id: i32) -> Result<Option<ScrapbookFs>> {
+    pub fn get_scrapbook_node_tree(
+        &self,
+        scrapbook_id: i32,
+    ) -> Result<Option<Vec<FsNodeResolved>>> {
         let mut nodes = self.get_scrapbook_nodes_raw(scrapbook_id)?.into_iter();
+
         if let Some(root_node) = nodes.next() {
             let root_id = root_node.id;
-            let root_children = root_node.children.ok_or_else(|| {
-                anyhow!("Root node with id {} has empty children vector", root_id)
-            })?;
+            let root_children: Vec<i32> = root_node
+                .children
+                .ok_or_else(|| anyhow!("Root node with id {} has empty children vector", root_id))?
+                .into();
 
-            let id_map: HashMap<i32, FsNode> = nodes
-                .map(|node| (node.id, FsNode::from_fs_node_with_id(node)))
+            let mut id_map: HashMap<i32, FsNode> = nodes.map(|node| (node.id, node)).collect();
+            let resolved: Result<Vec<FsNodeResolved>> = root_children
+                .into_iter()
+                .map(|id| FsNodeResolved::try_resolve(id, &mut id_map))
                 .collect();
 
-            Ok(Some(ScrapbookFs {
-                root: root_children.into(),
-                nodes: id_map,
-            }))
+            Ok(Some(resolved?))
         } else {
             Ok(None)
         }
