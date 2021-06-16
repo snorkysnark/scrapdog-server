@@ -4,10 +4,13 @@ mod loader;
 mod schema;
 mod types;
 
+use std::path::Path;
+
 use crate::paths::ProjectDirs;
 use anyhow::{Context, Result};
 use buckets::BucketsFolder;
 use diesel::prelude::*;
+use serde::Serialize;
 
 type DieselError = diesel::result::Error;
 
@@ -65,10 +68,21 @@ impl Storage {
         Ok(scrapbooks_id)
     }
 
-    pub fn list_scrapbooks(&self) -> Result<Vec<String>> {
+    pub fn list_scrapbooks(&self) -> Result<Vec<ScrapbookEntry>> {
         use schema::scrapbooks::dsl::*;
 
-        let names: Vec<String> = scrapbooks.select(name).order_by(id).load(&self.db)?;
+        let names: Vec<ScrapbookEntry> =
+            scrapbooks.select((id, name)).order_by(id).load(&self.db)?;
         Ok(names)
     }
+
+    pub fn get_bucket_path(&self) -> &Path {
+        self.buckets.get_path()
+    }
+}
+
+#[derive(Queryable, Serialize)]
+pub struct ScrapbookEntry {
+    id: i32,
+    name: String,
 }
